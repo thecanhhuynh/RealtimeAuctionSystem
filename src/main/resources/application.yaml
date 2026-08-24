@@ -1,0 +1,17 @@
+spring:
+  application:
+    name: RealtimeAuctionSystem
+    
+  datasource:
+    url: jdbc:mysql://localhost:3306/auction_db
+    username: root
+    password: 123456
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: admin
+    password: admin
