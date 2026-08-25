@@ -6,6 +6,7 @@ package com.htc.RealtimeAuctionSystem.consumer;
 
 import com.htc.RealtimeAuctionSystem.config.RabbitMQConfig;
 import com.htc.RealtimeAuctionSystem.dto.BidRequest;
+import com.htc.RealtimeAuctionSystem.dto.ItemsDto;
 import com.htc.RealtimeAuctionSystem.pojo.Bids;
 import com.htc.RealtimeAuctionSystem.pojo.Items;
 import com.htc.RealtimeAuctionSystem.pojo.Users;
@@ -18,6 +19,7 @@ import java.util.Date;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 /**
@@ -31,6 +33,8 @@ public class BidConsumer {
     private final ItemRepository itemsRepository;
     private final BidsRepository bidsRepository;
     private final UserRepository userRepository;
+
+    private final SimpMessagingTemplate messagingTemplate;
 
     @RabbitListener(queues = RabbitMQConfig.BID_QUEUE)
     @Transactional
@@ -47,6 +51,15 @@ public class BidConsumer {
             bid.setBidAmount(bidRequest.getBidAmount());
             bid.setCreatedAt(Date.from(Instant.now()));
             this.bidsRepository.save(bid);
+
+            ItemsDto itemDto = ItemsDto.builder()
+                    .id(item.getId())
+                    .name(item.getName())
+                    .startPrice(item.getStartPrice())
+                    .currentPrice(item.getCurrentPrice())
+                    .status(item.getStatus())
+                    .build();
+            messagingTemplate.convertAndSend("/topic/items/" + itemDto.getId(), itemDto);
 
             System.out.println("Xử lý thành công giá mới: " + bidRequest.getBidAmount());
         } else {

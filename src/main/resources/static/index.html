@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Live Auction</title>
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+</head>
+<body>
+    <h2>Giá hiện tại: <span id="price">Chưa có dữ liệu</span></h2>
+    
+    <script>
+        var socket = new SockJS('http://localhost:8080/ws');
+        var stompClient = Stomp.over(socket);
+        
+        stompClient.connect({}, function (frame) {
+            console.log('Connected: ' + frame);
+            stompClient.subscribe('/topic/items/1', function (message) {
+                var item = JSON.parse(message.body);
+                document.getElementById('price').innerText = item.currentPrice;
+            });
+        });
+    </script>
+</body>
+</html>
