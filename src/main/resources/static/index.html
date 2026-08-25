@@ -1,25 +1,124 @@
 <!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <title>Live Auction</title>
-    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
-</head>
-<body>
-    <h2>Giá hiện tại: <span id="price">Chưa có dữ liệu</span></h2>
-    
-    <script>
-        var socket = new SockJS('http://localhost:8080/ws');
-        var stompClient = Stomp.over(socket);
-        
-        stompClient.connect({}, function (frame) {
-            console.log('Connected: ' + frame);
-            stompClient.subscribe('/topic/items/1', function (message) {
-                var item = JSON.parse(message.body);
-                document.getElementById('price').innerText = item.currentPrice;
+<html lang="vi">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Live Auction</title>
+        <!-- Thêm Bootstrap để giao diện đẹp và chuẩn hơn -->
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+        <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+        <style>
+            body {
+                background-color: #f8f9fa;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                height: 100vh;
+            }
+            .auction-card {
+                width: 100%;
+                max-width: 450px;
+                padding: 30px;
+                border-radius: 12px;
+                background: white;
+                box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            }
+        </style>
+    </head>
+    <body>
+        <div class="auction-card text-center">
+            <h3 class="mb-4 text-primary">Sản phẩm Đấu giá <h2 id="itemName">....</h2></h3>
+
+            <div class="p-3 mb-4 bg-light rounded border">
+                <h5 class="text-secondary mb-1">Giá khởi điểm</h5>
+                <h2 class="text-success fw-bold m-0"><span id="startPrice">...</span> VNĐ</h2>
+            </div>
+
+            <div class="p-3 mb-4 bg-light rounded border">
+                <h5 class="text-secondary mb-1">Giá hiện tại</h5>
+                <h2 class="text-success fw-bold m-0"><span id="currentPrice">...</span> VNĐ</h2>
+            </div>
+
+            <div class="input-group mb-3">
+                <input type="number" id="bidAmount" class="form-control form-control-lg" placeholder="Nhập mức giá..." required>
+                <button class="btn btn-primary btn-lg" id="btnBid" onclick="placeBid()">Đặt giá</button>
+            </div>
+
+            <div id="statusMessage" class="fw-bold mt-2"></div>
+        </div>
+
+        <script>
+            const BASE_URL = 'https://patience-renderer-earthworm.ngrok-free.dev';
+
+            fetch(BASE_URL + '/api/items/1')
+                    .then(response => response.json())
+                    .then(item => {
+                        document.getElementById('itemName').innerText = item.name;
+                        document.getElementById('startPrice').innerText = item.startPrice.toLocaleString();
+                        document.getElementById('currentPrice').innerText = item.currentPrice.toLocaleString();
+                    })
+                    .catch(error => console.error('Lỗi tải dữ liệu:', error));
+
+            var socket = new SockJS(BASE_URL + '/ws');
+            var stompClient = Stomp.over(socket);
+
+            stompClient.connect({}, function (frame) {
+                console.log('Connected: ' + frame);
+                stompClient.subscribe('/topic/items/1', function (message) {
+                    var item = JSON.parse(message.body);
+                    document.getElementById('itemName').innerText = item.name;
+                    document.getElementById('currentPrice').innerText = item.currentPrice.toLocaleString();
+
+                    const statusMsg = document.getElementById('statusMessage');
+                    statusMsg.innerText = "Đã cập nhật giá mới!";
+                    statusMsg.className = "text-success";
+                });
+
+                stompClient.subscribe('/topic/errors/1', function (message) {
+                    const statusMsg = document.getElementById('statusMessage');
+                    statusMsg.innerText = message.body;
+                    statusMsg.className = "text-danger";
+                });
             });
-        });
-    </script>
-</body>
+
+            function placeBid() {
+                const amount = document.getElementById('bidAmount').value;
+                const statusMsg = document.getElementById('statusMessage');
+
+                if (!amount) {
+                    statusMsg.innerText = "Vui lòng nhập giá hợp lệ!";
+                    statusMsg.className = "text-danger";
+                    return;
+                }
+
+                const bidData = {
+                    itemId: 1,
+                    userId: 1,
+                    bidAmount: amount
+                };
+
+                fetch(BASE_URL + '/api/bids', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(bidData)
+                })
+                        .then(response => {
+                            if (response.ok) {
+                                statusMsg.innerText = "Đặt giá thành công! Đang chờ hệ thống xử lý...";
+                                statusMsg.className = "text-success";
+                                document.getElementById('bidAmount').value = '';
+                            } else {
+                                statusMsg.innerText = "Giá đặt không hợp lệ.";
+                                statusMsg.className = "text-danger";
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            statusMsg.innerText = "Lỗi kết nối máy chủ.";
+                            statusMsg.className = "text-danger";
+                        });
+            }
+        </script>
+    </body>
 </html>

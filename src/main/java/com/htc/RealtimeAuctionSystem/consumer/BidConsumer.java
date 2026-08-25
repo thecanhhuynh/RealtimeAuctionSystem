@@ -64,6 +64,7 @@ public class BidConsumer {
             System.out.println("Xử lý thành công giá mới: " + bidRequest.getBidAmount());
         } else {
             System.out.println("Giá đặt không hợp lệ.");
+            messagingTemplate.convertAndSend("/topic/errors/" + bidRequest.getUserId(), "Mức giá không hợp lệ hoặc thấp hơn giá hiện tại!");
         }
     }
 }

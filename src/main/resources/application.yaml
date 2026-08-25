@@ -1,6 +1,11 @@
+server:
+  address: 0.0.0.0
+  port: 8080
+
 spring:
   application:
     name: RealtimeAuctionSystem
+    
     
   datasource:
     url: jdbc:mysql://localhost:3306/auction_db
