@@ -55,5 +55,5 @@ Hệ thống được kiểm thử bằng công cụ **k6** với kịch bản m
 * **Độ trễ trung bình (Avg):** 5.23ms
 * **P(95):** 4.25ms
 
-![Kết quả Load Test k6]("https://github.com/user-attachments/assets/a04aab3c-8e9a-4751-bed3-9d4363c02395")
+![Kết quả Load Test k6](https://github.com/user-attachments/assets/a04aab3c-8e9a-4751-bed3-9d4363c02395)
 Hệ thống hoạt động mượt mà, không nghẽn cổ chai nhờ kiến trúc hàng đợi RabbitMQ.
