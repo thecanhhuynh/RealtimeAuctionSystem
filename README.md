@@ -45,3 +45,15 @@ mvn spring-boot:run
 1. Mở trình duyệt và truy cập: `http://localhost:8080/index.html`.
 2. (Tùy chọn) Sử dụng **Ngrok** hoặc IP mạng LAN (vd: `http://192.168.x.x:8080/index.html`) để mở giao diện trên điện thoại và máy tính cùng lúc.
 3. Nhập giá đấu giá và nhấn nút **Đặt giá**. Quan sát sự thay đổi giá tức thời trên tất cả các màn hình mà không cần reload trang.
+
+## Đánh giá hiệu năng (Load Testing)
+Hệ thống được kiểm thử bằng công cụ **k6** với kịch bản mô phỏng 100 người dùng (VUs) liên tục gửi yêu cầu đặt giá trong vòng 30 giây.
+
+**Kết quả:**
+* **Tổng số requests:** 28,349 (tốc độ ~941.98 req/s)
+* **Tỷ lệ thành công (HTTP 200):** 100%
+* **Độ trễ trung bình (Avg):** 5.23ms
+* **P(95):** 4.25ms
+
+![Kết quả Load Test k6]("https://github.com/user-attachments/assets/a04aab3c-8e9a-4751-bed3-9d4363c02395")
+Hệ thống hoạt động mượt mà, không nghẽn cổ chai nhờ kiến trúc hàng đợi RabbitMQ.
